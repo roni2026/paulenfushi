@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-ocean: #092C35;
+  --color-midnight: #071E24;
+  --color-sand: #E8DDC8;
+  --color-ivory: #F7F4ED;
+  --color-softwhite: #FCFBF7;
+  --color-palm: #53665A;
+  --color-gold: #B59A68;
+  --color-charcoal: #202625;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FCFBF7;
+  color: #202625;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes scroll-pulse {
+  0%, 100% { transform: translateY(0); opacity: 0.8; }
+  50% { transform: translateY(10px); opacity: 0.3; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slow-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
+.animate-scroll-pulse {
+  animation: scroll-pulse 2.4s ease-in-out infinite;
+}
+
+.animate-fade-up {
+  animation: fade-up 1s ease forwards;
+}
+
+.animate-fade-up-1 {
+  animation: fade-up 1s ease 0.15s forwards;
+  opacity: 0;
+}
+
+.animate-fade-up-2 {
+  animation: fade-up 1s ease 0.35s forwards;
+  opacity: 0;
+}
+
+.animate-fade-up-3 {
+  animation: fade-up 1s ease 0.55s forwards;
+  opacity: 0;
+}
+
+.animate-fade-up-4 {
+  animation: fade-up 1s ease 0.75s forwards;
+  opacity: 0;
+}
+
+.hero-zoom {
+  animation: slow-zoom 18s ease-out forwards;
+}
+
+.img-hover-zoom {
+  overflow: hidden;
+}
+
+.img-hover-zoom img {
+  transition: transform 0.7s ease;
+}
+
+.img-hover-zoom:hover img {
+  transform: scale(1.05);
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(181, 154, 104, 0.35);
+  border-radius: 2px;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
