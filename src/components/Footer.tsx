@@ -19,7 +19,9 @@ export default function Footer({ onNavigate }: FooterProps) {
   return (
     <footer className="bg-midnight text-softwhite">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-16 pt-20 pb-10">
+        {/* Top row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 pb-16 border-b border-softwhite/10">
+          {/* Brand */}
           <div>
             <div className="font-serif text-3xl tracking-[0.3em] text-softwhite mb-1">
               PAULENFUSHI
@@ -32,6 +34,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             </p>
           </div>
 
+          {/* Navigation */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-3">
             {colLinks.map((link) => (
               <button
@@ -44,6 +47,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             ))}
           </div>
 
+          {/* Contact + Newsletter */}
           <div className="flex flex-col gap-8">
             <div>
               <p className="font-sans text-[10px] tracking-[0.25em] text-gold mb-4 uppercase">
@@ -57,6 +61,11 @@ export default function Footer({ onNavigate }: FooterProps) {
                 reservations@paulenfushi.com
               </a>
               <p className="font-sans text-sm text-softwhite/50 mt-2">Maldives</p>
+              <div className="mt-6 pt-5 border-t border-softwhite/10">
+                <p className="font-sans text-[10px] tracking-[0.25em] text-gold mb-2 uppercase">Reservations Director</p>
+                <p className="font-sans text-sm text-softwhite/70">Biju Paul</p>
+                <p className="font-sans text-sm text-softwhite/45 mt-0.5">+1 (555) 000-0000</p>
+              </div>
             </div>
             <div>
               <p className="font-serif italic text-base text-softwhite/60 mb-4">
@@ -76,6 +85,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           </div>
         </div>
 
+        {/* Bottom row */}
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <p className="font-sans text-[11px] text-softwhite/30 tracking-wide">
             &copy; 2026 Paulenfushi Resort &amp; Spa. All rights reserved.
