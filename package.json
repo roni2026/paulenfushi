@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:render": "vite build --config vite.config.render.ts",
-    "preview": "vite preview"
+    "build": "vite build --config vite.config.render.ts",
+    "preview": "vite preview",
+    "format": "oxfmt",
+    "build:render": "vite build --config vite.config.render.ts"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -20,6 +21,7 @@
     "@vitejs/plugin-react": "^6.0.0",
     "tailwindcss": "^4.0.0",
     "@tailwindcss/vite": "^4.0.0",
+    "oxfmt": "^0.2.0",
     "typescript": "^5.7.0",
     "vite": "^8.0.5"
   }
