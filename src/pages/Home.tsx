@@ -1,8 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { NavigateFn } from '../App';
 
 const u = (id: string, w = 1920, h = 1080) =>
   `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&auto=format&q=80`;
+
+const HERO_SLIDES = [
+  { id: '1514282401047-d79a71a590e8', loc: 'The Island' },
+  { id: '1609601546193-f558f1ebb385', loc: 'Beach Villa' },
+  { id: '1540541338287-41700207dee6', loc: 'Beach Villa with Pool' },
+  { id: '1590523277543-a94d2e4eb00b', loc: 'Water Villa' },
+  { id: '1561501900-3701fa6a0864', loc: 'Water Villa with Pool' },
+  { id: '1762961881563-66852e1e4527', loc: 'Maldives' },
+  { id: '1609601540898-52ca92508901', loc: 'Golden Hour' },
+];
+
+const SLIDE_DURATION = 7000;
+const FADE_MS = 1500;
 
 const IMGS = {
   hero: '1514282401047-d79a71a590e8',
@@ -63,39 +76,177 @@ const journalItems = [
   { title: 'The quiet luxury of doing absolutely nothing', tag: 'WELLNESS', date: 'Jul 2026', img: IMGS.spa },
 ];
 
+// ——— Cinematic Hero ————————————————————————————
+function CinematicHero({ onNavigate }: { onNavigate: NavigateFn }) {
+  const [active, setActive] = useState(0);
+  const [animKey, setAnimKey] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [showNav, setShowNav] = useState(false);
+  const rafRef = useRef<number>(0);
+  const startRef = useRef(Date.now());
+
+  const goTo = (idx: number) => {
+    setActive(idx);
+    setAnimKey((k) => k + 1);
+    startRef.current = Date.now();
+    setProgress(0);
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => goTo((active + 1) % HERO_SLIDES.length), SLIDE_DURATION);
+    return () => clearTimeout(t);
+  }, [active]);
+
+  useEffect(() => {
+    startRef.current = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - startRef.current;
+      setProgress(Math.min(elapsed / SLIDE_DURATION, 1));
+      if (elapsed < SLIDE_DURATION) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [active]);
+
+  const slide = HERO_SLIDES[active];
+  const pad = (n: number) => String(n + 1).padStart(2, '0');
+
+  return (
+    <section
+      className="relative overflow-hidden"
+      style={{ height: '100svh' }}
+      onMouseEnter={() => setShowNav(true)}
+      onMouseLeave={() => setShowNav(false)}
+    >
+      {/* Crossfading image layers */}
+      {HERO_SLIDES.map((s, i) => (
+        <div
+          key={i}
+          className="absolute inset-0"
+          style={{
+            opacity: i === active ? 1 : 0,
+            transition: `opacity ${FADE_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+          }}
+        >
+          <img
+            key={i === active ? animKey : -i}
+            src={`https://images.unsplash.com/photo-${s.id}?w=2400&h=1350&fit=crop&auto=format&q=80`}
+            alt={s.loc}
+            className={`absolute inset-0 w-full h-full object-cover ${i === active ? 'ken-burns' : ''}`}
+            loading={i === 0 ? 'eager' : 'lazy'}
+          />
+        </div>
+      ))}
+
+      {/* Cinematic overlays */}
+      <div className="absolute inset-0 bg-gradient-to-b from-midnight/40 via-transparent to-midnight/65 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-midnight/20 to-transparent pointer-events-none" />
+
+      {/* Text — bottom-left editorial layout */}
+      <div className="absolute bottom-[150px] sm:bottom-[168px] left-6 sm:left-10 lg:left-14 z-10 max-w-[92vw] lg:max-w-2xl">
+        <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.5em] text-gold mb-3 sm:mb-5">
+          RESORT &amp; SPA · MALDIVES
+        </p>
+        <h1 className="font-serif font-light text-[2.8rem] sm:text-[5rem] lg:text-[7.5rem] xl:text-[8.5rem] leading-[0.9] tracking-[0.07em] text-softwhite">
+          PAULENFUSHI
+        </h1>
+        <div className="flex items-center gap-5 sm:gap-7 mt-5 sm:mt-8">
+          <button
+            onClick={() => onNavigate('book')}
+            className="font-sans text-[10px] sm:text-[11px] tracking-[0.35em] text-softwhite/75 hover:text-gold transition-colors duration-500 flex items-center gap-2 group"
+          >
+            <span className="border-b border-softwhite/20 group-hover:border-gold pb-px transition-colors duration-500">
+              BOOK YOUR STAY
+            </span>
+            <span className="group-hover:translate-x-0.5 transition-transform duration-300">→</span>
+          </button>
+          <span className="w-px h-3 bg-softwhite/15 hidden sm:block" />
+          <button
+            onClick={() => onNavigate('villas')}
+            className="font-sans text-[10px] sm:text-[11px] tracking-[0.35em] text-softwhite/30 hover:text-softwhite/65 transition-colors duration-500 hidden sm:block"
+          >
+            VILLAS
+          </button>
+        </div>
+      </div>
+
+      {/* Slide indicator — bottom right */}
+      <div className="absolute bottom-[88px] sm:bottom-[100px] right-6 sm:right-10 z-10 flex flex-col items-end gap-2">
+        <div className="font-sans text-[10px] tracking-[0.2em]">
+          <span className="text-softwhite/60">{pad(active)}</span>
+          <span className="text-softwhite/20"> / {pad(HERO_SLIDES.length - 1)}</span>
+        </div>
+        <div className="relative h-px w-14 sm:w-20 bg-softwhite/15">
+          <div className="absolute inset-y-0 left-0 bg-gold" style={{ width: `${progress * 100}%` }} />
+        </div>
+        <p className="font-sans text-[8px] tracking-[0.25em] text-softwhite/30 uppercase">
+          {slide.loc}
+        </p>
+      </div>
+
+      {/* Prev / Next — hover-reveal */}
+      <div
+        className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3 sm:px-5 z-10 pointer-events-none"
+        style={{ opacity: showNav ? 1 : 0, transition: 'opacity 0.6s ease' }}
+      >
+        <button
+          onClick={() => goTo((active - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}
+          className="pointer-events-auto text-softwhite/25 hover:text-softwhite/70 transition-colors duration-300 p-3 sm:p-4 font-sans text-sm"
+          aria-label="Previous image"
+        >
+          ←
+        </button>
+        <button
+          onClick={() => goTo((active + 1) % HERO_SLIDES.length)}
+          className="pointer-events-auto text-softwhite/25 hover:text-softwhite/70 transition-colors duration-300 p-3 sm:p-4 font-sans text-sm"
+          aria-label="Next image"
+        >
+          →
+        </button>
+      </div>
+
+      {/* Booking bar pinned to bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <BookingBar onBook={() => onNavigate('book')} />
+      </div>
+    </section>
+  );
+}
+
+// ——— Booking Bar ——————————————————————————————
 function BookingBar({ onBook }: { onBook: () => void }) {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [villa, setVilla] = useState('');
 
   return (
-    <div className="bg-softwhite shadow-2xl" style={{ boxShadow: '0 8px 40px rgba(7,30,36,0.25)' }}>
-      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-charcoal/10">
-        <div className="flex-1 px-6 py-4">
+    <div className="bg-softwhite" style={{ boxShadow: '0 8px 40px rgba(7,30,36,0.25)' }}>
+      <div className="max-w-[1440px] mx-auto grid grid-cols-2 lg:flex">
+        <div className="px-5 py-4 lg:flex-1 border-b border-r lg:border-b-0 lg:border-r lg:border-r-charcoal/10 border-charcoal/10">
           <p className="font-sans text-[9px] tracking-[0.35em] text-charcoal/40 mb-1.5">CHECK-IN</p>
           <input type="date" className="w-full font-sans text-sm text-charcoal bg-transparent outline-none cursor-pointer" />
         </div>
-        <div className="flex-1 px-6 py-4">
+        <div className="px-5 py-4 lg:flex-1 border-b lg:border-b-0 lg:border-r border-charcoal/10">
           <p className="font-sans text-[9px] tracking-[0.35em] text-charcoal/40 mb-1.5">CHECK-OUT</p>
           <input type="date" className="w-full font-sans text-sm text-charcoal bg-transparent outline-none cursor-pointer" />
         </div>
-        <div className="px-6 py-4 flex-none">
+        <div className="px-5 py-4 lg:flex-none border-r lg:border-r border-charcoal/10">
           <p className="font-sans text-[9px] tracking-[0.35em] text-charcoal/40 mb-1.5">GUESTS</p>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setAdults(Math.max(1, adults - 1))} className="w-6 h-6 border border-charcoal/20 text-charcoal/60 text-sm hover:border-gold hover:text-gold transition-colors flex items-center justify-center leading-none">−</button>
-            <span className="font-sans text-sm text-charcoal w-4 text-center">{adults + children}</span>
-            <button onClick={() => setAdults(adults + 1)} className="w-6 h-6 border border-charcoal/20 text-charcoal/60 text-sm hover:border-gold hover:text-gold transition-colors flex items-center justify-center leading-none">+</button>
-            <span className="font-sans text-xs text-charcoal/40 ml-1">{adults}A {children}C</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setAdults(Math.max(1, adults - 1))} className="w-7 h-7 border border-charcoal/20 text-charcoal/60 text-sm hover:border-gold hover:text-gold transition-colors flex items-center justify-center leading-none">−</button>
+            <span className="font-sans text-sm text-charcoal w-5 text-center">{adults + children}</span>
+            <button onClick={() => setAdults(adults + 1)} className="w-7 h-7 border border-charcoal/20 text-charcoal/60 text-sm hover:border-gold hover:text-gold transition-colors flex items-center justify-center leading-none">+</button>
+            <span className="font-sans text-xs text-charcoal/40 ml-1 hidden sm:inline">{adults}A {children}C</span>
           </div>
         </div>
-        <div className="flex-1 px-6 py-4">
+        <div className="px-5 py-4 lg:flex-1 lg:border-r border-charcoal/10">
           <p className="font-sans text-[9px] tracking-[0.35em] text-charcoal/40 mb-1.5">VILLA TYPE</p>
           <select value={villa} onChange={(e) => setVilla(e.target.value)} className="w-full font-sans text-sm text-charcoal bg-transparent outline-none cursor-pointer appearance-none">
             <option value="">Any villa</option>
             {villas.map((v) => <option key={v.num} value={v.num}>{v.name}</option>)}
           </select>
         </div>
-        <button onClick={onBook} className="bg-ocean text-softwhite font-sans text-[11px] tracking-[0.28em] px-10 py-4 hover:bg-gold transition-colors duration-300 flex-none whitespace-nowrap">
+        <button onClick={onBook} className="col-span-2 lg:col-span-1 bg-ocean text-softwhite font-sans text-[11px] tracking-[0.28em] px-8 py-4 hover:bg-gold transition-colors duration-300 lg:flex-none whitespace-nowrap border-t lg:border-t-0 border-charcoal/10">
           CHECK AVAILABILITY
         </button>
       </div>
@@ -103,6 +254,7 @@ function BookingBar({ onBook }: { onBook: () => void }) {
   );
 }
 
+// ——— Villa Card ——————————————————————————————
 function VillaCard({ villa, idx, onNavigate }: { villa: typeof villas[0]; idx: number; onNavigate: NavigateFn }) {
   return (
     <div className="flex-shrink-0 w-[300px] sm:w-[340px] lg:w-[380px] bg-softwhite flex flex-col" style={{ scrollSnapAlign: 'start' }}>
@@ -173,41 +325,11 @@ function VillaCard({ villa, idx, onNavigate }: { villa: typeof villas[0]; idx: n
 export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
   return (
     <div className="w-full">
-      <section className="relative h-screen overflow-hidden flex flex-col">
-        <img src={u(IMGS.hero, 2400, 1350)} alt="Paulenfushi aerial" className="absolute inset-0 w-full h-full object-cover hero-zoom" />
-        <div className="absolute inset-0 bg-gradient-to-b from-midnight/55 via-midnight/20 to-midnight/60" />
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
-          <p className="font-sans text-[10px] tracking-[0.5em] text-gold animate-fade-up mb-4">
-            RESORT &amp; SPA &nbsp;&middot;&nbsp; MALDIVES
-          </p>
-          <h1 className="font-serif font-light text-[3.5rem] sm:text-[5.5rem] lg:text-[8rem] xl:text-[9.5rem] leading-none tracking-[0.08em] text-softwhite animate-fade-up-1">
-            PAULENFUSHI
-          </h1>
-          <div className="w-20 h-px bg-gold my-5 animate-fade-up-2" />
-          <p className="font-serif italic text-lg sm:text-xl lg:text-2xl text-softwhite/90 animate-fade-up-2">
-            Where the Ocean Becomes Home.
-          </p>
-          <p className="font-sans text-sm text-softwhite/55 tracking-wide max-w-sm mt-4 mb-10 leading-relaxed animate-fade-up-3">
-            A private island sanctuary created for those who seek extraordinary stillness.
-          </p>
-          <div className="flex gap-3 flex-col sm:flex-row animate-fade-up-4">
-            <button onClick={() => onNavigate('island')} className="font-sans text-[11px] tracking-[0.28em] text-softwhite border border-softwhite/40 px-8 py-3.5 hover:bg-softwhite hover:text-midnight transition-all duration-300">
-              DISCOVER THE ISLAND
-            </button>
-            <button onClick={() => onNavigate('villas')} className="font-sans text-[11px] tracking-[0.28em] text-midnight bg-softwhite px-8 py-3.5 hover:bg-gold hover:text-softwhite transition-all duration-300">
-              VIEW VILLAS
-            </button>
-          </div>
-        </div>
-        <div className="relative z-10 flex flex-col items-center gap-2 pb-6 animate-scroll-pulse">
-          <span className="font-sans text-[9px] tracking-[0.4em] text-softwhite/40">SCROLL</span>
-          <div className="w-px h-8 bg-gradient-to-b from-softwhite/40 to-transparent" />
-        </div>
-        <div className="relative z-20">
-          <BookingBar onBook={() => onNavigate('book')} />
-        </div>
-      </section>
 
+      {/* ═══ 01 CINEMATIC HERO ══════════════════════════════════════════════ */}
+      <CinematicHero onNavigate={onNavigate} />
+
+      {/* ═══ 02 EDITORIAL INTRO ════════════════════════════════════════════════ */}
       <section className="bg-ivory py-24 lg:py-36">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <div>
@@ -242,6 +364,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
+      {/* ═══ 03 VILLA COLLECTION ══════════════════════════════════════════════ */}
       <section className="bg-ocean pt-20 pb-0">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-16 mb-10">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -272,6 +395,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
+      {/* ═══ 04 EXPERIENCES ═════════════════════════════════════════════════════════ */}
       <section className="bg-midnight py-24 lg:py-36">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
           <div className="flex items-center gap-4 mb-4">
@@ -307,6 +431,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
+      {/* ═══ 05 DINING ══════════════════════════════════════════════════════════════════ */}
       <section className="bg-sand py-24 lg:py-36">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
           <div className="flex items-center gap-4 mb-5">
@@ -347,6 +472,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
+      {/* ═══ 06 SPA & WELLNESS ══════════════════════════════════════════════════════════════════ */}
       <section className="bg-ivory py-24 lg:py-36">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden">
@@ -387,7 +513,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
               <p className="font-sans text-[10px] tracking-[0.4em] text-palm mb-5">WELLNESS PROGRAMME</p>
               <h3 className="font-serif text-3xl text-charcoal font-light italic mb-5">Wake with the island.</h3>
               <div className="flex flex-col gap-2 mb-8">
-                {['Yoga at sunrise over the lagoon', 'Meditation by the water\'s edge', 'Breathwork beneath the palms'].map((l) => (
+                {["Yoga at sunrise over the lagoon", "Meditation by the water's edge", "Breathwork beneath the palms"].map((l) => (
                   <p key={l} className="font-sans text-sm text-charcoal/60">{l}</p>
                 ))}
               </div>
@@ -402,6 +528,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
+      {/* ═══ 07 SUSTAINABILITY ══════════════════════════════════════════════════════════════════ */}
       <section className="bg-charcoal py-24 lg:py-32">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
           <div className="flex items-center gap-4 mb-6">
@@ -428,6 +555,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
+      {/* ═══ 08 JOURNAL ═════════════════════════════════════════════════════════════════════════════════ */}
       <section className="bg-softwhite py-24 lg:py-36">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
           <div className="flex items-center gap-4 mb-5">
@@ -460,6 +588,90 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
+      {/* ═══ 09 CONTACT US ══════════════════════════════════════════════════════════════════ */}
+      <section className="bg-sand py-24 lg:py-32">
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
+            <div>
+              <div className="flex items-center gap-4 mb-8">
+                <span className="w-8 h-px bg-palm" />
+                <p className="font-sans text-[10px] tracking-[0.45em] text-palm">CONTACT US</p>
+              </div>
+              <h2 className="font-serif text-4xl lg:text-5xl font-light text-charcoal leading-tight mb-10">
+                We are here to help you plan the perfect escape.
+              </h2>
+              <div className="border-t border-charcoal/10 pt-8 mb-8">
+                <p className="font-sans text-[9px] tracking-[0.35em] text-gold mb-3">CONTACT US</p>
+                <p className="font-serif text-3xl text-charcoal mb-6">Biju Paul</p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-4">
+                    <span className="w-5 h-px bg-gold flex-shrink-0" />
+                    <a href="tel:+15550000000" className="font-sans text-sm text-charcoal/70 hover:text-gold transition-colors">
+                      +1 (555) 000-0000
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="w-5 h-px bg-gold flex-shrink-0" />
+                    <a href="mailto:biju.paul@paulenfushi.com" className="font-sans text-sm text-charcoal/70 hover:text-gold transition-colors">
+                      biju.paul@paulenfushi.com
+                    </a>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <span className="w-5 h-px bg-gold flex-shrink-0 mt-2" />
+                    <span className="font-sans text-sm text-charcoal/70 leading-relaxed">
+                      Paulenfushi Island, North Malé Atoll, Maldives
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-ivory border-l-2 border-gold px-6 py-5">
+                <p className="font-sans text-[10px] tracking-[0.25em] text-gold mb-2">RESERVATIONS HOURS</p>
+                <p className="font-sans text-sm text-charcoal/60 leading-relaxed">
+                  Daily 8:00 AM – 10:00 PM (Maldives Time, GMT+5)
+                </p>
+              </div>
+            </div>
+            <div className="bg-softwhite p-7 lg:p-10">
+              <p className="font-sans text-[10px] tracking-[0.35em] text-charcoal/40 mb-8">SEND A MESSAGE</p>
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border border-charcoal/15">
+                    <label className="font-sans text-[9px] tracking-[0.3em] text-charcoal/40 px-4 pt-3 block">FIRST NAME</label>
+                    <input type="text" className="w-full bg-transparent font-sans text-sm text-charcoal px-4 pb-3 outline-none" placeholder="—" />
+                  </div>
+                  <div className="border border-charcoal/15">
+                    <label className="font-sans text-[9px] tracking-[0.3em] text-charcoal/40 px-4 pt-3 block">LAST NAME</label>
+                    <input type="text" className="w-full bg-transparent font-sans text-sm text-charcoal px-4 pb-3 outline-none" placeholder="—" />
+                  </div>
+                </div>
+                <div className="border border-charcoal/15">
+                  <label className="font-sans text-[9px] tracking-[0.3em] text-charcoal/40 px-4 pt-3 block">EMAIL ADDRESS</label>
+                  <input type="email" className="w-full bg-transparent font-sans text-sm text-charcoal px-4 pb-3 outline-none" placeholder="your@email.com" />
+                </div>
+                <div className="border border-charcoal/15">
+                  <label className="font-sans text-[9px] tracking-[0.3em] text-charcoal/40 px-4 pt-3 block">SUBJECT</label>
+                  <select className="w-full bg-transparent font-sans text-sm text-charcoal px-4 pb-3 outline-none appearance-none">
+                    <option value="">Select a topic</option>
+                    <option>Reservation Enquiry</option>
+                    <option>Villa Information</option>
+                    <option>Special Occasions</option>
+                    <option>General Enquiry</option>
+                  </select>
+                </div>
+                <div className="border border-charcoal/15">
+                  <label className="font-sans text-[9px] tracking-[0.3em] text-charcoal/40 px-4 pt-3 block">MESSAGE</label>
+                  <textarea rows={4} className="w-full bg-transparent font-sans text-sm text-charcoal px-4 pb-3 outline-none resize-none" placeholder="How can we help you..." />
+                </div>
+                <button className="w-full bg-ocean text-softwhite font-sans text-[11px] tracking-[0.25em] py-4 hover:bg-gold transition-colors duration-300">
+                  SEND MESSAGE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ 10 FINAL CTA ═══════════════════════════════════════════════════════════════════════ */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <img src={u(IMGS.finalCta, 2400, 1350)} alt="Leave the ordinary behind" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-midnight/25 via-midnight/45 to-midnight/75" />
@@ -479,6 +691,7 @@ export default function Home({ onNavigate }: { onNavigate: NavigateFn }) {
           </div>
         </div>
       </section>
+
     </div>
   );
 }

@@ -79,6 +79,22 @@ body {
   animation: slow-zoom 18s ease-out forwards;
 }
 
+@keyframes ken-burns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+
+.ken-burns {
+  animation: ken-burns 9s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ken-burns,
+  .hero-zoom {
+    animation: none;
+  }
+}
+
 .img-hover-zoom {
   overflow: hidden;
 }
