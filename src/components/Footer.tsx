@@ -62,7 +62,7 @@ export default function Footer({ onNavigate }: FooterProps) {
               </a>
               <p className="font-sans text-sm text-softwhite/50 mt-2">Maldives</p>
               <div className="mt-6 pt-5 border-t border-softwhite/10">
-                <p className="font-sans text-[10px] tracking-[0.25em] text-gold mb-2 uppercase">Reservations Director</p>
+                <p className="font-sans text-[10px] tracking-[0.25em] text-gold mb-2 uppercase">Contact US</p>
                 <p className="font-sans text-sm text-softwhite/70">Biju Paul</p>
                 <p className="font-sans text-sm text-softwhite/45 mt-0.5">+1 (555) 000-0000</p>
               </div>
