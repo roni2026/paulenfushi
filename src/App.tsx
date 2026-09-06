@@ -17,8 +17,7 @@ import Cursor from './components/Cursor';
 import Concierge from './components/Concierge';
 import MobileBottomNav from './components/MobileBottomNav';
 import OceanAtmosphere from './components/OceanAtmosphere';
-import IslandModeSelector from './components/IslandModeSelector';
-import type { IslandMode } from './components/IslandModeSelector';
+type IslandMode = 'discover' | 'escape' | 'explore';
 
 export type Page =
   | 'home'
@@ -69,7 +68,6 @@ export default function App() {
         <>
           <Cursor />
           <OceanAtmosphere visible={page === 'home'} />
-          <IslandModeSelector mode={islandMode} onChange={setIslandMode} visible={page === 'home'} />
 
           <Nav currentPage={page} onNavigate={(p) => navigate(p as Page)} />
 

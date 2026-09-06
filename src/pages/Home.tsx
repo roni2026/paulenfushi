@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import type { NavigateFn } from '../App';
-import type { IslandMode } from '../components/IslandModeSelector';
 import IslandMap from '../components/IslandMap';
 import VillaFinder from '../components/VillaFinder';
 import ItineraryBuilder from '../components/ItineraryBuilder';
+
+type IslandMode = 'discover' | 'escape' | 'explore';
 
 const u = (id: string, w = 1920, h = 1080) =>
   `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&auto=format&q=80`;
